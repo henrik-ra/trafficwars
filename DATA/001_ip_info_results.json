@@ -1,0 +1,794 @@
+{
+  "10.10.110.106": {
+    "ip": "10.10.110.106",
+    "continentCode": "EU",
+    "countryCode": "NO",
+    "country": "Norway",
+    "city": "Oslo",
+    "latitude": 59.91273,
+    "longitude": 10.74609,
+    "asn": {
+      "asn": "AS36183",
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.12.220": {
+    "ip": "10.10.12.220",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "K\u00f6ln",
+    "latitude": 50.93333,
+    "longitude": 6.95,
+    "asn": {
+      "asn": "AS6805",
+      "name": "Telefonica Germany GmbH & Co.OHG",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Telefonica Germany GmbH & Co. OHG",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.121.174": {
+    "ip": "10.10.121.174",
+    "continentCode": "EU",
+    "countryCode": "ES",
+    "country": "Spain",
+    "city": "Barcelona",
+    "latitude": 41.4883,
+    "longitude": 2.0782,
+    "asn": {
+      "asn": "AS13335",
+      "name": "Cloudflare, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Cloudflare, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.124.47": {
+    "ip": "10.10.124.47",
+    "continentCode": "EU",
+    "countryCode": "LU",
+    "country": "Luxembourg",
+    "city": "Luxembourg",
+    "latitude": 49.61167,
+    "longitude": 6.13,
+    "asn": {
+      "asn": "AS6661",
+      "name": "POST Luxembourg",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Entreprise des P&T",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.13.82": {
+    "ip": "10.10.13.82",
+    "continentCode": "NA",
+    "countryCode": "US",
+    "country": "United States",
+    "city": "New York City",
+    "latitude": 40.71427,
+    "longitude": -74.00597,
+    "asn": {
+      "asn": "AS13335",
+      "name": "Cloudflare, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Cloudflare, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.160.97": {
+    "ip": "10.10.160.97",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Frankfurt am Main",
+    "latitude": 50.11552,
+    "longitude": 8.68417,
+    "asn": {
+      "asn": "AS36183",
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.162.108": {
+    "ip": "10.10.162.108",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "K\u00f6ln",
+    "latitude": 50.93333,
+    "longitude": 6.95,
+    "asn": {
+      "asn": "AS3209",
+      "name": "Vodafone GmbH",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Vodafone GmbH",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.168.146": {
+    "ip": "10.10.168.146",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Frankfurt am Main",
+    "latitude": 50.11552,
+    "longitude": 8.68417,
+    "asn": {
+      "asn": "AS36183",
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.173.162": {
+    "ip": "10.10.173.162",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Frankfurt am Main",
+    "latitude": 50.11552,
+    "longitude": 8.68417,
+    "asn": {
+      "asn": "AS36183",
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.187.119": {
+    "ip": "10.10.187.119",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Roth",
+    "latitude": 49.24762,
+    "longitude": 11.09111,
+    "asn": {
+      "asn": "AS20686",
+      "name": "Bisping & Bisping GmbH & Co KG",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Bisping & Bisping GmbH & Co KG",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": true,
+      "relay": false,
+      "tor": false,
+      "service": "Unknown service"
+    }
+  },
+  "10.10.205.45": {
+    "ip": "10.10.205.45",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Erding",
+    "latitude": 48.30603,
+    "longitude": 11.90686,
+    "asn": {
+      "asn": "AS3320",
+      "name": "Deutsche Telekom AG",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Deutsche Telekom AG",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.208.108": {
+    "ip": "10.10.208.108",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Hamburg",
+    "latitude": 53.55057,
+    "longitude": 9.96272,
+    "asn": {
+      "asn": "AS3209",
+      "name": "Vodafone GmbH",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Vodafone GmbH",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.209.104": {
+    "ip": "10.10.209.104",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Berlin",
+    "latitude": 52.5095,
+    "longitude": 13.3147,
+    "asn": {
+      "asn": "AS3209",
+      "name": "Vodafone GmbH",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Vodafone Deutschland GmbH",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": true,
+      "relay": false,
+      "tor": false,
+      "service": "Unknown service"
+    }
+  },
+  "10.10.21.150": {
+    "ip": "10.10.21.150",
+    "continentCode": "EU",
+    "countryCode": "BE",
+    "country": "Belgium",
+    "city": "Brussels",
+    "latitude": 50.85045,
+    "longitude": 4.34878,
+    "asn": {
+      "asn": "AS6848",
+      "name": "Telenet BVBA",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Telenet operaties N.V.",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": true,
+      "relay": false,
+      "tor": false,
+      "service": "Unknown service"
+    }
+  },
+  "10.10.223.2": {
+    "ip": "10.10.223.2",
+    "continentCode": "NA",
+    "countryCode": "DO",
+    "country": "Dominican Republic",
+    "city": "Santo Domingo",
+    "latitude": 18.4278,
+    "longitude": -70,
+    "asn": {
+      "asn": "AS13335",
+      "name": "Cloudflare, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Cloudflare, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.226.56": {
+    "ip": "10.10.226.56",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Frankfurt am Main",
+    "latitude": 50.11552,
+    "longitude": 8.68417,
+    "asn": {
+      "asn": "AS36183",
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.23.81": {
+    "ip": "10.10.23.81",
+    "continentCode": "EU",
+    "countryCode": "BG",
+    "country": "Bulgaria",
+    "city": "Gotse Delchev",
+    "latitude": 41.56667,
+    "longitude": 23.73333,
+    "asn": {
+      "asn": "AS205343",
+      "name": "GP-NET Ltd.",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Evolink AD",
+      "type": "business"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.232.124": {
+    "ip": "10.10.232.124",
+    "continentCode": "EU",
+    "countryCode": "GR",
+    "country": "Greece",
+    "city": "L\u00e1risa",
+    "latitude": 39.63689,
+    "longitude": 22.41761,
+    "asn": {
+      "asn": "AS6799",
+      "name": "Ote SA (Hellenic Telecommunications Organisation)",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Multiprotocol Service Provider to other ISP's and End Users",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.236.61": {
+    "ip": "10.10.236.61",
+    "continentCode": "EU",
+    "countryCode": "GB",
+    "country": "United Kingdom",
+    "city": "Glasgow",
+    "latitude": 55.8376,
+    "longitude": -4.2843,
+    "asn": {
+      "asn": "AS12576",
+      "name": "EE Limited",
+      "type": "isp"
+    },
+    "company": {
+      "name": "OUK Broadband IP Stream",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.243.167": {
+    "ip": "10.10.243.167",
+    "continentCode": "EU",
+    "countryCode": "LT",
+    "country": "Lithuania",
+    "city": "Vilnius",
+    "latitude": 54.6895,
+    "longitude": 25.2829,
+    "asn": {
+      "asn": "AS8764",
+      "name": "Telia Lietuva, AB",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Telia Lietuva, AB",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.244.134": {
+    "ip": "10.10.244.134",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Frankfurt am Main",
+    "latitude": 50.11552,
+    "longitude": 8.68417,
+    "asn": {
+      "asn": "AS36183",
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.252.118": {
+    "ip": "10.10.252.118",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Berlin",
+    "latitude": 52.52437,
+    "longitude": 13.41053,
+    "asn": {
+      "asn": "AS13335",
+      "name": "Cloudflare, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Cloudflare, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.254.54": {
+    "ip": "10.10.254.54",
+    "continentCode": "NA",
+    "countryCode": "US",
+    "country": "United States",
+    "city": "New York City",
+    "latitude": 40.7597,
+    "longitude": -73.9918,
+    "asn": {
+      "asn": "AS204300",
+      "name": "INTERNET INVEST LIMITED",
+      "type": "isp"
+    },
+    "company": {
+      "name": "IT-Services",
+      "type": "business"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.255.182": {
+    "ip": "10.10.255.182",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Frankfurt am Main",
+    "latitude": 50.11552,
+    "longitude": 8.68417,
+    "asn": {
+      "asn": "AS3320",
+      "name": "Deutsche Telekom AG",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Telekom Deutschland GmbH",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.26.229": {
+    "ip": "10.10.26.229",
+    "continentCode": "AS",
+    "countryCode": "TR",
+    "country": "Turkey",
+    "city": "Istanbul",
+    "latitude": 41.01384,
+    "longitude": 28.94966,
+    "asn": {
+      "asn": "AS36183",
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.52.23": {
+    "ip": "10.10.52.23",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Frankfurt am Main",
+    "latitude": 50.11552,
+    "longitude": 8.68417,
+    "asn": {
+      "asn": "AS36183",
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "company": {
+      "name": "Akamai Technologies, Inc.",
+      "type": "hosting"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": true,
+      "tor": false,
+      "service": "Apple Private Relay"
+    }
+  },
+  "10.10.54.230": {
+    "ip": "10.10.54.230",
+    "continentCode": "EU",
+    "countryCode": "NL",
+    "country": "Netherlands",
+    "city": "Amsterdam",
+    "latitude": 52.37403,
+    "longitude": 4.88969,
+    "asn": {
+      "asn": "AS6830",
+      "name": "Liberty Global B.V.",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Railway Telecom, Ltd",
+      "type": "business"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.58.130": {
+    "ip": "10.10.58.130",
+    "continentCode": "AS",
+    "countryCode": "TR",
+    "country": "Turkey",
+    "city": "Istanbul",
+    "latitude": 41.01384,
+    "longitude": 28.94966,
+    "asn": {
+      "asn": "AS16135",
+      "name": "TURKCELL ILETISIM HIZMETLERI A.S.",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Turkcell Iletisim Hizmetleri A.S",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.60.162": {
+    "ip": "10.10.60.162",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Hannover",
+    "latitude": 52.37052,
+    "longitude": 9.73322,
+    "asn": {
+      "asn": "AS6805",
+      "name": "Telefonica Germany GmbH & Co.OHG",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Telefonica Germany GmbH & Co. OHG",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.66.101": {
+    "ip": "10.10.66.101",
+    "continentCode": "AS",
+    "countryCode": "PH",
+    "country": "Philippines",
+    "city": "Quezon City",
+    "latitude": 14.7208,
+    "longitude": 121.06905,
+    "asn": {
+      "asn": "AS9299",
+      "name": "Philippine Long Distance Telephone Company",
+      "type": "isp"
+    },
+    "company": {
+      "name": "PLDT_ALAC10Ki01_DHCP",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.75.187": {
+    "ip": "10.10.75.187",
+    "continentCode": "AS",
+    "countryCode": "AE",
+    "country": "United Arab Emirates",
+    "city": "Dubai",
+    "latitude": 25.07725,
+    "longitude": 55.30927,
+    "asn": {
+      "asn": "AS15802",
+      "name": "Emirates Integrated Telecommunications Company PJSC",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Emirates Integrated Telecommunications Company PJSC (EITC-DU)",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.77.73": {
+    "ip": "10.10.77.73",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "K\u00f6ln",
+    "latitude": 50.93333,
+    "longitude": 6.95,
+    "asn": {
+      "asn": "AS3209",
+      "name": "Vodafone GmbH",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Vodafone GmbH",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  },
+  "10.10.82.252": {
+    "ip": "10.10.82.252",
+    "continentCode": "EU",
+    "countryCode": "DE",
+    "country": "Germany",
+    "city": "Mannheim",
+    "latitude": 49.4883,
+    "longitude": 8.4647,
+    "asn": {
+      "asn": "AS3209",
+      "name": "Vodafone GmbH",
+      "type": "isp"
+    },
+    "company": {
+      "name": "Unitymedia dynamic customer IP pool",
+      "type": "isp"
+    },
+    "privacy": {
+      "vpn": false,
+      "relay": false,
+      "tor": false,
+      "service": ""
+    }
+  }
+}
