@@ -2,21 +2,47 @@
 
 ## NGINX-native rate limiting (Layer 7)
 
-Configure in `/etc/nginx/conf.d/loadbalancer.conf`:
+Configured in `/etc/nginx/conf.d/loadbalancer.conf` (see `LOAD_BALANCER_APP/loadbalancer.conf`).
 
+### What was added to the original config
+
+**3 zone definitions** (before the `upstream` block):
 ```nginx
-limit_req_zone $binary_remote_addr zone=webapp:10m rate=30r/s;
-
-server {
-    listen 80;
-    location / {
-        limit_req zone=webapp burst=20 nodelay;
-        proxy_pass http://application;
-    }
-}
+limit_req_zone  $binary_remote_addr zone=perip:10m    rate=3r/s;
+limit_req_zone  $binary_remote_addr zone=checkout:10m  rate=2r/s;
+limit_conn_zone $binary_remote_addr zone=connperip:10m;
 ```
 
-Tiered limits based on risk score (requires dynamic NGINX module or Lua — if unavailable, handle via Python + iptables instead).
+**Server-level** connection cap:
+```nginx
+limit_conn connperip 20;    # max 20 simultaneous connections per IP
+```
+
+**`location /`** — general rate limit:
+```nginx
+limit_req zone=perip burst=10 nodelay;   # max 3 req/s per IP, burst of 10
+```
+
+**`location /checkout`** — stricter limit on the money endpoint:
+```nginx
+limit_req  zone=checkout burst=5 nodelay;  # max 2 req/s per IP
+limit_conn connperip 10;                     # max 10 connections per IP
+```
+
+### Deploy
+```bash
+sudo cp /root/LOAD_BALANCER_APP/loadbalancer.conf /etc/nginx/conf.d/loadbalancer.conf
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### Tuning
+- If still too many 503s from backend → lower `rate=` values (e.g. `1r/s` on checkout).
+- If revenue drops → raise `rate=` or increase `burst=`.
+- Always check Grafana after each change.
+
+Current baseline (team 3 traffic analysis): normal users ~1 req/s,
+bots were caught at 5-6 req/s — so `2r/s` on checkout should pass real
+customers while blocking volume bots.
 
 ## Dynamic rate limiting (Python app)
 
