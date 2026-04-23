@@ -1,20 +1,14 @@
 #!/usr/bin/env python3
 """
-TrafficWars fast analyzer + risk scorer for team 3.
-
-- Reads last N lines of NGINX access log (default 50k).
-- Aggregates per-IP counts, status distribution, time window.
-- Fetches ipinfo metadata for top IPs (cached, bounded concurrency).
-- Prints overall stats, top endpoints, risk-scored IP table, and
-  ready-to-paste ipset commands for high-risk IPs.
+TrafficWars strong analyzer for Team 3 (Check24 specific).
+Aggregates by IP, Subnet (/24), ASN, and Company.
+Adds heavy penalty for Non-DACH countries since Check24 is DACH-focused.
 
 Usage:
-    sudo python3 SCRIPTS/analyze.py           # top 30, 50k lines
-    sudo python3 SCRIPTS/analyze.py --top 50  # top 50
-    sudo python3 SCRIPTS/analyze.py --lines 200000
+  sudo python3 SCRIPTS/analyze.py --lines 50000
+  sudo python3 SCRIPTS/analyze.py --lines 50000 --mode suggest
+  sudo python3 SCRIPTS/analyze.py --lines 50000 --mode apply
 """
-from __future__ import annotations
-
 import argparse
 import json
 import os
@@ -24,7 +18,7 @@ import sys
 import time
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
@@ -35,7 +29,9 @@ TEAM = os.environ.get("TEAM", "team3")
 LOG = os.environ.get("ACCESS_LOG", "/var/log/nginx/access.log")
 IPINFO_URL = f"http://ipinfo.{TEAM}/ips/{{ip}}"
 IPINFO_TIMEOUT = 2.0
-IPINFO_WORKERS = 8
+IPINFO_WORKERS = 16
+
+DACH_COUNTRIES = {"DE", "AT", "CH"}
 
 LOG_RE = re.compile(
     r'^(?P<ip>\d+\.\d+\.\d+\.\d+)\s+\S+\s+\S+\s+'
@@ -43,25 +39,25 @@ LOG_RE = re.compile(
     r'"(?P<method>\S+)\s+(?P<path>[^\s"]*)(?:\s+\S+)?"\s+'
     r'(?P<status>\d{3})\s+'
 )
-
 TIME_FMT = "%d/%b/%Y:%H:%M:%S"
 
-
-# ---------- data types ----------
-
 @dataclass
-class IpStats:
+class Stats:
     count: int = 0
-    statuses: Counter = None
+    statuses: Counter = field(default_factory=Counter)
     first_ts: Optional[float] = None
     last_ts: Optional[float] = None
-    paths: Counter = None
+    ips: set = field(default_factory=set)
 
-    def __post_init__(self):
-        if self.statuses is None:
-            self.statuses = Counter()
-        if self.paths is None:
-            self.paths = Counter()
+    def add(self, ts, status, ip):
+        self.count += 1
+        self.statuses[status] += 1
+        if ts is not None:
+            if self.first_ts is None or ts < self.first_ts:
+                self.first_ts = ts
+            if self.last_ts is None or ts > self.last_ts:
+                self.last_ts = ts
+        self.ips.add(ip)
 
     @property
     def duration(self) -> float:
@@ -81,32 +77,18 @@ class IpStats:
         total = sum(self.statuses.values())
         return bad / total if total else 0.0
 
-
-# ---------- log reading ----------
-
 def read_log(path: str, n_lines: int) -> list[str]:
-    """Read last N lines efficiently using tail."""
-    try:
-        out = subprocess.run(
-            ["tail", "-n", str(n_lines), path],
-            check=True,
-            capture_output=True,
-            text=True,
-            errors="replace",
-        )
-        return out.stdout.splitlines()
-    except FileNotFoundError:
-        print(f"ERROR: tail not found", file=sys.stderr)
-        sys.exit(1)
-    except subprocess.CalledProcessError as e:
-        print(f"ERROR reading {path}: {e.stderr}", file=sys.stderr)
-        sys.exit(1)
+    out = subprocess.run(
+        ["tail", "-n", str(n_lines), path],
+        check=True, capture_output=True, text=True, errors="replace",
+    )
+    return out.stdout.splitlines()
 
-
-def parse_log(lines: list[str]) -> tuple[dict[str, IpStats], Counter, Counter]:
-    ip_stats: dict[str, IpStats] = defaultdict(IpStats)
-    all_statuses: Counter = Counter()
-    all_paths: Counter = Counter()
+def parse_log(lines):
+    by_ip = defaultdict(Stats)
+    by_subnet = defaultdict(Stats)
+    all_statuses = Counter()
+    all_paths = Counter()
 
     for line in lines:
         m = LOG_RE.match(line)
@@ -124,47 +106,29 @@ def parse_log(lines: list[str]) -> tuple[dict[str, IpStats], Counter, Counter]:
         except ValueError:
             ts = None
 
-        s = ip_stats[ip]
-        s.count += 1
-        s.statuses[status] += 1
-        s.paths[path] += 1
-        if ts is not None:
-            if s.first_ts is None or ts < s.first_ts:
-                s.first_ts = ts
-            if s.last_ts is None or ts > s.last_ts:
-                s.last_ts = ts
-
+        subnet = ".".join(ip.split(".")[:3]) + ".0/24"
+        by_ip[ip].add(ts, status, ip)
+        by_subnet[subnet].add(ts, status, ip)
         all_statuses[status] += 1
         all_paths[path] += 1
 
-    return ip_stats, all_statuses, all_paths
+    return by_ip, by_subnet, all_statuses, all_paths
 
-
-# ---------- ipinfo ----------
-
-_cache: dict[str, Optional[dict]] = {}
-
-def ipinfo(ip: str) -> Optional[dict]:
-    if ip in _cache:
-        return _cache[ip]
+def ipinfo_one(ip: str) -> Optional[dict]:
     url = IPINFO_URL.format(ip=ip)
     try:
         with urllib.request.urlopen(url, timeout=IPINFO_TIMEOUT) as r:
             if r.status == 200:
-                data = json.loads(r.read().decode("utf-8"))
-                _cache[ip] = data
-                return data
-    except (urllib.error.URLError, TimeoutError,
-            json.JSONDecodeError, ConnectionError):
+                return json.loads(r.read().decode("utf-8"))
+    except:
         pass
-    _cache[ip] = None
     return None
 
-
-def lookup_all(ips: list[str]) -> dict[str, Optional[dict]]:
-    results: dict[str, Optional[dict]] = {}
+def fetch_ipinfo_batch(ips: list[str]) -> dict:
+    results = {}
+    print(f"  ipinfo: fetching {len(ips)} IPs...", flush=True)
     with ThreadPoolExecutor(max_workers=IPINFO_WORKERS) as ex:
-        futures = {ex.submit(ipinfo, ip): ip for ip in ips}
+        futures = {ex.submit(ipinfo_one, ip): ip for ip in ips}
         for f in as_completed(futures):
             ip = futures[f]
             try:
@@ -173,162 +137,174 @@ def lookup_all(ips: list[str]) -> dict[str, Optional[dict]]:
                 results[ip] = None
     return results
 
-
-# ---------- scoring ----------
-
-def score(stats: IpStats, info: Optional[dict]) -> tuple[int, list[str]]:
+def score_ip(st: Stats, info: Optional[dict]) -> tuple[int, list[str]]:
     s = 0
-    reasons: list[str] = []
+    reasons = []
 
-    # rate signals
-    if stats.rps >= 5.0:
-        s += 60; reasons.append(f"rps={stats.rps:.1f}")
-    elif stats.rps >= 2.0:
-        s += 40; reasons.append(f"rps={stats.rps:.1f}")
-    elif stats.rps >= 1.0:
-        s += 20; reasons.append(f"rps={stats.rps:.1f}")
+    # RPS
+    if st.rps >= 10: s += 80; reasons.append(f"rps={st.rps:.1f}")
+    elif st.rps >= 5: s += 60; reasons.append(f"rps={st.rps:.1f}")
+    elif st.rps >= 2: s += 40; reasons.append(f"rps={st.rps:.1f}")
+    elif st.rps >= 1: s += 20; reasons.append(f"rps={st.rps:.1f}")
 
-    # absolute volume
-    if stats.count >= 500:
-        s += 30; reasons.append(f"count={stats.count}")
-    elif stats.count >= 200:
-        s += 15; reasons.append(f"count={stats.count}")
+    # Total Count
+    if st.count >= 500: s += 30; reasons.append(f"cnt={st.count}")
+    elif st.count >= 200: s += 15
 
-    # error ratio
-    if stats.bad_ratio > 0.5 and stats.count > 20:
-        s += 20; reasons.append(f"err={stats.bad_ratio:.0%}")
+    # Errors
+    if st.bad_ratio > 0.5 and st.count > 20:
+        s += 20; reasons.append(f"err={st.bad_ratio:.0%}")
 
-    # ipinfo signals
     if info:
         priv = info.get("privacy") or {}
-        if priv.get("tor"):
-            s += 60; reasons.append("tor")
-        if priv.get("vpn"):
-            s += 35; reasons.append("vpn")
-        if priv.get("relay"):
-            s += 10; reasons.append("relay")
+        if priv.get("tor"): s += 60; reasons.append("tor")
+        if priv.get("vpn"): s += 35; reasons.append("vpn")
+        # Check24 DACH check
+        cc = info.get("countryCode")
+        if cc and cc not in DACH_COUNTRIES:
+            s += 50
+            reasons.append(f"non-DACH({cc})")
+        
         asn_type = (info.get("asn") or {}).get("type")
         if asn_type == "hosting":
             s += 30; reasons.append("hosting")
-        elif asn_type == "business":
-            s += 5
+    else:
+        # If no info, we can't tell, rely on volume
+        pass
 
     return s, reasons
 
+def score_group(st: Stats, n_ips: int, is_non_dach: bool = False) -> tuple[int, list[str]]:
+    s = 0
+    reasons = []
+    if st.rps >= 50: s += 80; reasons.append(f"grp_rps={st.rps:.1f}")
+    elif st.rps >= 20: s += 60; reasons.append(f"grp_rps={st.rps:.1f}")
+    elif st.rps >= 10: s += 40; reasons.append(f"grp_rps={st.rps:.1f}")
+    
+    if is_non_dach:
+        s += 50; reasons.append("non-DACH")
 
-def verdict(score_val: int) -> str:
-    if score_val >= 80:
-        return "HARD BLOCK"
-    if score_val >= 50:
-        return "SOFT"
-    if score_val >= 30:
-        return "WATCH"
+    # Distributed attack from group
+    if n_ips >= 20 and st.rps >= 10: s += 40; reasons.append(f"ips={n_ips}")
+    elif n_ips >= 10 and st.rps >= 5: s += 20; reasons.append(f"ips={n_ips}")
+    
+    if st.bad_ratio > 0.5 and st.count > 100: s += 20; reasons.append(f"err={st.bad_ratio:.0%}")
+    return s, reasons
+
+def verdict(s: int) -> str:
+    if s >= 80: return "HARD"
+    if s >= 50: return "SOFT"
+    if s >= 30: return "WATCH"
     return "ok"
 
-
-# ---------- main ----------
+def ensure_ipset():
+    subprocess.run(["ipset", "create", "threat", "hash:ip", "timeout", "7200", "-exist"], stderr=subprocess.DEVNULL)
+    subprocess.run(["ipset", "create", "threat_net", "hash:net", "timeout", "7200", "-exist"], stderr=subprocess.DEVNULL)
+    for s in ("threat", "threat_net"):
+        if subprocess.run(["iptables", "-C", "INPUT", "-m", "set", "--match-set", s, "src", "-j", "DROP"], stderr=subprocess.DEVNULL).returncode != 0:
+            subprocess.run(["iptables", "-I", "INPUT", "2", "-m", "set", "--match-set", s, "src", "-j", "DROP"])
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--top", type=int, default=30, help="how many top IPs to score")
-    p.add_argument("--lines", type=int, default=50000, help="log lines to analyze")
-    p.add_argument("--min-score", type=int, default=80,
-                   help="min score for block suggestions")
-    p.add_argument("--no-ipinfo", action="store_true",
-                   help="skip ipinfo lookups (faster, volume-only scoring)")
+    p.add_argument("--lines", type=int, default=50000)
+    p.add_argument("--top", type=int, default=50)
+    p.add_argument("--mode", choices=["observe", "suggest", "apply"], default="observe")
     args = p.parse_args()
 
-    t0 = time.time()
-    print(f"=== TrafficWars Analyzer (team={TEAM}) ===")
-    print(f"Reading last {args.lines} lines from {LOG} ...", flush=True)
-
+    print(f"=== TrafficWars Strong Analyzer (team={TEAM}, mode={args.mode}) ===")
     lines = read_log(LOG, args.lines)
-    ip_stats, all_statuses, all_paths = parse_log(lines)
-
-    total = sum(all_statuses.values())
-    if total == 0:
-        print("No parseable log lines found.")
+    by_ip, by_subnet, all_statuses, all_paths = parse_log(lines)
+    
+    if not by_ip:
+        print("No log lines parsed.")
         return
 
-    # --- overall ---
-    # estimate overall timespan + rps using earliest/latest ts across all IPs
-    first_ts = min((s.first_ts for s in ip_stats.values() if s.first_ts), default=None)
-    last_ts  = max((s.last_ts  for s in ip_stats.values() if s.last_ts),  default=None)
-    if first_ts and last_ts:
-        span = max(1.0, last_ts - first_ts)
-        overall_rps = total / span
-        print(f"\nParsed: {total} requests across {span:.0f}s "
-              f"(~{overall_rps:.1f} req/s)   unique IPs: {len(ip_stats)}")
-    else:
-        print(f"\nParsed: {total} requests   unique IPs: {len(ip_stats)}")
+    top_ips = sorted(by_ip.keys(), key=lambda ip: by_ip[ip].count, reverse=True)[:args.top * 2]
+    infos = fetch_ipinfo_batch(top_ips)
 
-    print("\nStatus codes:")
-    for st, c in all_statuses.most_common():
-        print(f"  {st}: {c}  ({c/total:.1%})")
+    # ASN & Company Aggregation
+    by_asn = defaultdict(Stats)
+    by_comp = defaultdict(Stats)
+    asn_meta = {}
+    comp_meta = {}
 
-    print("\nTop endpoints:")
-    for path, c in all_paths.most_common(10):
-        print(f"  {c:6d}  {path}")
-
-    # --- top IPs ---
-    top = sorted(ip_stats.items(), key=lambda kv: kv[1].count, reverse=True)[:args.top]
-
-    # --- ipinfo ---
-    infos: dict[str, Optional[dict]] = {}
-    if not args.no_ipinfo:
-        print(f"\nFetching ipinfo for top {len(top)} IPs ...", flush=True)
-        infos = lookup_all([ip for ip, _ in top])
-        n_ok = sum(1 for v in infos.values() if v)
-        print(f"  got {n_ok}/{len(top)} successful lookups")
-
-    # --- score table ---
-    print("\n" + "=" * 110)
-    print(f"{'SCORE':>5}  {'IP':<16}  {'COUNT':>6}  {'RPS':>5}  "
-          f"{'ERR%':>5}  {'ASN':<10}  {'CC':<3}  {'PRIVACY':<20}  VERDICT / REASONS")
-    print("-" * 110)
-
-    scored: list[tuple[int, str, IpStats, Optional[dict], list[str]]] = []
-    for ip, st in top:
+    for ip in top_ips:
         info = infos.get(ip)
-        sc, reasons = score(st, info)
-        scored.append((sc, ip, st, info, reasons))
+        if not info: continue
+        st = by_ip[ip]
+        asn = (info.get("asn") or {}).get("asn") or "unknown"
+        comp = (info.get("company") or {}).get("name") or "unknown"
+        cc = info.get("countryCode") or "-"
+        
+        g_asn = by_asn[asn]
+        g_asn.count += st.count; g_asn.statuses.update(st.statuses); g_asn.ips.add(ip)
+        g_asn.first_ts = min(filter(None, [g_asn.first_ts, st.first_ts]), default=None)
+        g_asn.last_ts = max(filter(None, [g_asn.last_ts, st.last_ts]), default=None)
+        asn_meta[asn] = {"cc": cc, "type": (info.get("asn") or {}).get("type") or ""}
 
-    scored.sort(key=lambda x: x[0], reverse=True)
+        g_comp = by_comp[comp]
+        g_comp.count += st.count; g_comp.statuses.update(st.statuses); g_comp.ips.add(ip)
+        g_comp.first_ts = min(filter(None, [g_comp.first_ts, st.first_ts]), default=None)
+        g_comp.last_ts = max(filter(None, [g_comp.last_ts, st.last_ts]), default=None)
+        comp_meta[comp] = {"cc": cc}
 
-    for sc, ip, st, info, reasons in scored:
-        if info:
-            asn_type = ((info.get("asn") or {}).get("type") or "-")[:10]
-            cc = info.get("countryCode") or "-"
-            priv = info.get("privacy") or {}
-            flags = []
-            if priv.get("tor"):   flags.append("TOR")
-            if priv.get("vpn"):   flags.append("VPN")
-            if priv.get("relay"): flags.append("RELAY")
-            privacy = ",".join(flags) or "-"
-            svc = priv.get("service") or ""
-            if svc:
-                privacy = f"{privacy}({svc[:12]})"
-        else:
-            asn_type, cc, privacy = "?", "?", "?"
+    # IP Table
+    print("\n" + "="*115 + f"\nPER-IP (top {args.top})\n" + "-"*115)
+    print(f"{'SCORE':>5}  {'IP':<16}  {'COUNT':>6}  {'RPS':>5}  {'ERR%':>4}  {'CC':<3}  {'PRIVACY':<18}  REASONS")
+    
+    scored_ips = []
+    for ip in top_ips[:args.top]:
+        st = by_ip[ip]
+        info = infos.get(ip)
+        s, reasons = score_ip(st, info)
+        scored_ips.append((s, ip, st, info, reasons))
+    
+    scored_ips.sort(key=lambda x: x[0], reverse=True)
+    
+    for s, ip, st, info, reasons in scored_ips:
+        cc = (info.get("countryCode") or "-") if info else "?"
+        priv = info.get("privacy") or {} if info else {}
+        privacy = ",".join([k for k in ["tor", "vpn", "relay"] if priv.get(k)]) or "-"
+        print(f"{s:>5}  {ip:<16}  {st.count:>6}  {st.rps:>5.1f}  {st.bad_ratio*100:>3.0f}%  {cc:<3}  {privacy:<18}  {verdict(s)} [{','.join(reasons)}]")
 
-        v = verdict(sc)
-        print(f"{sc:>5}  {ip:<16}  {st.count:>6}  {st.rps:>5.1f}  "
-              f"{st.bad_ratio*100:>4.0f}%  {asn_type:<10}  {cc:<3}  "
-              f"{privacy:<20}  {v} [{','.join(reasons)}]")
+    # Subnet Table
+    print("\n" + "="*115 + f"\nPER-/24-SUBNET (top 15 by volume)\n" + "-"*115)
+    scored_subs = []
+    for subnet, st in sorted(by_subnet.items(), key=lambda kv: kv[1].count, reverse=True)[:15]:
+        # heuristic: if we don't have country code for the subnet directly, just volume score
+        s, reasons = score_group(st, len(st.ips))
+        scored_subs.append((s, subnet, st, reasons))
+    
+    for s, subnet, st, reasons in sorted(scored_subs, key=lambda x: x[0], reverse=True):
+        print(f"{s:>5}  {subnet:<18}  {st.count:>6}  {st.rps:>6.1f}  {st.bad_ratio*100:>3.0f}%  {len(st.ips):>4}  {verdict(s)} [{','.join(reasons)}]")
 
-    # --- block suggestions ---
-    to_block = [(sc, ip) for sc, ip, *_ in scored if sc >= args.min_score]
-    print("\n" + "=" * 110)
-    print(f"Suggested ipset blocks (score >= {args.min_score}): {len(to_block)}")
-    if to_block:
-        print("\n# Copy-paste to block (ensure 'threat' ipset + iptables rule exist):")
-        print("sudo iptables -C INPUT -m set --match-set threat src -j DROP 2>/dev/null || \\")
-        print("  sudo iptables -I INPUT 2 -m set --match-set threat src -j DROP")
-        for sc, ip in to_block:
-            print(f"sudo ipset add threat {ip} -exist   # score={sc}")
+    # ASN Table
+    if by_asn:
+        print("\n" + "="*115 + f"\nPER-ASN (top 15 by volume)\n" + "-"*115)
+        scored_asns = []
+        for asn, st in sorted(by_asn.items(), key=lambda kv: kv[1].count, reverse=True)[:15]:
+            cc = asn_meta[asn]["cc"]
+            s, reasons = score_group(st, len(st.ips), is_non_dach=(cc not in DACH_COUNTRIES and cc != "-"))
+            scored_asns.append((s, asn, cc, st, reasons))
+        for s, asn, cc, st, reasons in sorted(scored_asns, key=lambda x: x[0], reverse=True):
+            print(f"{s:>5}  {asn:<10}  {cc:<3}  {st.count:>6}  {st.rps:>6.1f}  {len(st.ips):>4} IP  [{','.join(reasons)}]")
 
-    print(f"\nDone in {time.time()-t0:.1f}s")
+    # Actions
+    to_block_ips = [ip for s, ip, *_ in scored_ips if s >= 80]
+    to_block_subs = [sub for s, sub, *_ in scored_subs if s >= 80]
 
+    print("\n" + "="*115)
+    if args.mode == "observe":
+        print(f"Would block {len(to_block_ips)} IPs and {len(to_block_subs)} Subnets. Run with --mode suggest or --mode apply to action them.")
+    elif args.mode == "suggest":
+        print("# Commands to block (Score >= 80):")
+        for ip in to_block_ips: print(f"sudo ipset add threat {ip} -exist")
+        for sub in to_block_subs: print(f"sudo ipset add threat_net {sub} -exist")
+    elif args.mode == "apply":
+        ensure_ipset()
+        for ip in to_block_ips: subprocess.run(["ipset", "add", "threat", ip, "-exist"])
+        for sub in to_block_subs: subprocess.run(["ipset", "add", "threat_net", sub, "-exist"])
+        print(f"Applied blocks for {len(to_block_ips)} IPs and {len(to_block_subs)} /24 Subnets.")
 
 if __name__ == "__main__":
     main()
