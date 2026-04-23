@@ -32,6 +32,23 @@ Keep the webshop available for legitimate users by filtering out malicious/spam 
 
 **Summary:** NGINX and iptables handle the _enforcement_ (fast path). Python handles the _intelligence_ (slow path: analysis, enrichment, scoring, decision-making).
 
+### Data flow
+```
+Traffic → NGINX (logs + rate limit) → Backend app
+                                    ↑
+                              iptables drops here
+                                    ↑
+                            Python app edits ipset
+                                    ↑
+         Python app reads logs → scores IPs → decides block/limit/pass
+```
+
+The Python app **never touches traffic**. It only:
+1. Reads `/var/log/nginx/access.log` (passive).
+2. Calls IP info API for enrichment.
+3. Computes risk scores.
+4. Executes `sudo ipset add threat <IP>` or writes NGINX config + reloads.
+
 ## Components
 - **NGINX** — Entry point. Rate limiting via `limit_req_zone`. Access logs for analysis.
 - **iptables + ipset** — Kernel-level IP blocking. Efficient for large blocklists.

@@ -28,3 +28,4 @@ For IPs with medium risk scores (not yet block-worthy), the Python app can:
 
 ## Decision
 Use **NGINX `limit_req`** for baseline rate limiting (all traffic). Use **Python + iptables/ipset** for risk-adaptive blocking (above NGINX's static config).
+
