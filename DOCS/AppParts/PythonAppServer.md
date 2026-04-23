@@ -1,0 +1,2 @@
+Each of the app parts are one or more files. 
+they run with uvicron and pm2 on this server. each featuere is one or more python filfes. changes to the python files lead to automatic pm2 or uviron reloads. 

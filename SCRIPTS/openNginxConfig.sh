@@ -1,0 +1,1 @@
+nano /etc/nginx/conf.d/loadbalancer.conf
