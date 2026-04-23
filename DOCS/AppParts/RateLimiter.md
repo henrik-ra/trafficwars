@@ -8,8 +8,8 @@ Configured in `/etc/nginx/conf.d/loadbalancer.conf` (see `LOAD_BALANCER_APP/load
 
 **3 zone definitions** (before the `upstream` block):
 ```nginx
-limit_req_zone  $binary_remote_addr zone=perip:10m    rate=3r/s;
-limit_req_zone  $binary_remote_addr zone=checkout:10m  rate=2r/s;
+limit_req_zone  $binary_remote_addr zone=perip:10m    rate=20r/s;
+limit_req_zone  $binary_remote_addr zone=checkout:10m  rate=10r/s;
 limit_conn_zone $binary_remote_addr zone=connperip:10m;
 ```
 
@@ -20,12 +20,12 @@ limit_conn connperip 20;    # max 20 simultaneous connections per IP
 
 **`location /`** — general rate limit:
 ```nginx
-limit_req zone=perip burst=10 nodelay;   # max 3 req/s per IP, burst of 10
+limit_req zone=perip burst=40 nodelay;   # max 20 req/s per IP, burst of 40
 ```
 
 **`location /checkout`** — stricter limit on the money endpoint:
 ```nginx
-limit_req  zone=checkout burst=5 nodelay;  # max 2 req/s per IP
+limit_req  zone=checkout burst=20 nodelay;  # max 10 req/s per IP
 limit_conn connperip 10;                     # max 10 connections per IP
 ```
 
