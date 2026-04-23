@@ -1,18 +1,39 @@
-# Setup
-On a VM. This should act as a loadbalancer.
-Getting simulated user traffic and bot requests/DDOS.
-Using NGINX.
-Have a firewall
+# Strategy
 
-# Goal
+## Setup
+Single VM running as reverse proxy / load balancer (NGINX). Incoming traffic: legitimate users + bots / DDoS. Backend application is not publicly reachable — all traffic passes through NGINX.
 
-Write logic to filter out spam traffic, to protect the web app from fraufulant traffic, to make it stay available for legitimate users.
+## Goal
+Keep the webshop available for legitimate users by filtering out malicious/spam traffic using rate limiting, IP blocking, and risk-based access control.
 
-# Logical Steps
+## Loop
+1. **Analyze** — Read NGINX access logs (`/var/log/nginx/access.log`). Identify suspicious patterns (bursts, known bad IPs, scraping, etc.).
+2. **Enrich** — Query the IP info API (`http://ipinfo.team<N>/ips/<IP>`) for metadata (ASN, VPN/TOR flags, company type). Cache results to avoid hitting API rate limits.
+3. **Score** — Assign each IP a risk score based on traffic patterns + IP metadata.
+4. **Act** — Enforce controls:
+   - **NGINX rate limiting** — Per-IP request caps in `loadbalancer.conf`.
+   - **iptables + ipset** — Drop traffic from high-risk IPs at the firewall level.
+   - **Dynamic tarpit / block** — Python app (uvicorn + pm2) that monitors logs, scores IPs, and writes iptables rules or updates ipsets.
+5. **Monitor** — Check Grafana dashboard for revenue impact and traffic changes. Adjust thresholds accordingly.
+6. **Repeat** — Continuous cycle: log → analyze → score → block → monitor → tune.
 
-Use ngingx access logs and the ip info lookup service to get ip info.
-Worlking in a loop. Analyse traffic with nginx access logs and ip info service. Understand waht is likely spam/bot behavior that needs to be banned.
-use wirewall rules to block bad traffic. use nginx or similar too?
-analyse further traffic and impact on revenue (not accessible in this vm, our team has a dashboard setup on a separte screen)
+## Feature ownership
 
-Repeat loop of analyse logs, write logic to combat bad traffic, monitor, and so on.
+| Feature | Tool | Why |
+|---------|------|-----|
+| Static per-IP rate limit (e.g. 30 req/s) | **NGINX** (`limit_req_zone`) | Built-in, zero-latency, configure once |
+| Drop all traffic from known bad IPs | **iptables + ipset** | Kernel-level, no overhead from userspace processing |
+| Parse access logs to extract IPs + paths + rates | **Python app** | NGINX has no built-in log analysis — need custom pattern matching |
+| Query IP info API + cache results | **Python app** | API returns JSON, needs rate-limit-aware client + cache |
+| Compute risk score per IP (rate × metadata × path) | **Python app** | Custom logic combining multiple signals — not expressible in NGINX config alone |
+| Add/remove IPs from ipset dynamically | **Python app** (calls `ipset` via subprocess) | iptables/ipset has no built-in scoring engine — decisions must come from analysis |
+| Route traffic to different backends or tarpit based on score | **NGINX** (if using `map` + variables) or **Python** (if using iptables reroute) | Possible in NGINX with `$limit_rate` but complex — simpler to handle in Python + iptables |
+| Serve health/metrics endpoint for monitoring | **Python app** (uvicorn ASGI endpoint) | Need a lightweight HTTP server for internal status checks |
+
+**Summary:** NGINX and iptables handle the _enforcement_ (fast path). Python handles the _intelligence_ (slow path: analysis, enrichment, scoring, decision-making).
+
+## Components
+- **NGINX** — Entry point. Rate limiting via `limit_req_zone`. Access logs for analysis.
+- **iptables + ipset** — Kernel-level IP blocking. Efficient for large blocklists.
+- **Python app** (uvicorn + pm2) — Custom analysis logic. Reads NGINX logs, calls IP info API, computes risk scores, manages ipset rules.
+- **IP info API** — Returns ASN, geolocation, privacy flags (VPN/TOR/hosting) per IP. Rate-limited — cache aggressively.
